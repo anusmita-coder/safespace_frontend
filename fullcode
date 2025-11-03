@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SafeSpace — AI Women Safety (Front-end)</title>
+
+  <!-- Leaflet for map (OpenStreetMap) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#ff4d6d;
+      --muted:#9aa7b2;
+      --glass: rgba(255,255,255,0.04);
+      --success:#3ad29f;
+      --warning:#ffb020;
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071029 0%, #071833 50%, #0b1b2b 100%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,"Helvetica Neue",Arial;}
+    .app{
+      max-width:1200px;margin:28px auto;padding:22px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 6px 30px rgba(2,6,23,0.7);
+      color:#e6f0f6;
+      display:grid;grid-template-columns:420px 1fr;gap:20px;
+    }
+    header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .logo{
+      width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#6c5ce7);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:white;box-shadow:0 6px 18px rgba(109,40,217,0.18)
+    }
+    h1{font-size:20px;margin:0}
+    p.lead{color:var(--muted);margin:0;font-size:13px}
+    /* left column */
+    .left{display:flex;flex-direction:column;gap:14px}
+    .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
+    .panic{
+      display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px;border-radius:12px;text-align:center;background:linear-gradient(180deg, rgba(255,77,109,0.06), rgba(255,77,109,0.02));
+      border:1px solid rgba(255,77,109,0.06)
+    }
+    .panic .big{
+      width:120px;height:120px;border-radius:999px;background:radial-gradient(circle at 30% 20%, rgba(255,77,109,0.22), rgba(255,77,109,0.06));display:flex;align-items:center;justify-content:center;font-size:28px;color:white;font-weight:700;box-shadow:0 12px 30px rgba(255,77,109,0.08)
+    }
+    .panic button{margin-top:6px;padding:12px 18px;border-radius:10px;border:0;background:var(--accent);color:white;font-weight:700;cursor:pointer}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .chip{background:var(--glass);padding:8px 12px;border-radius:999px;font-size:13px;color:var(--muted);border:1px solid rgba(255,255,255,0.02)}
+    .small{font-size:13px;color:var(--muted)}
+    /* map area */
+    #map{height:680px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.02)}
+    .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    .tools button{background:linear-gradient(90deg,#12314a, #0d2232);border:1px solid rgba(255,255,255,0.02);color:#bfe6ff;padding:8px 12px;border-radius:10px;cursor:pointer}
+    .status{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center}
+    .legend{display:flex;gap:8px;align-items:center}
+    .dot{width:12px;height:12px;border-radius:3px}
+    .dot.green{background:var(--success)}
+    .dot.yellow{background:var(--warning)}
+    .dot.red{background:#ff6b6b}
+    /* companion route preview */
+    .route-preview{height:120px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);display:flex;align-items:center;padding:12px;gap:12px}
+    .route-preview canvas{flex:1;background:linear-gradient(90deg, rgba(255,255,255,0.01), transparent);border-radius:8px}
+    /* footer small */
+    .muted-small{font-size:12px;color:var(--muted)}
+    /* modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.6));z-index:9999}
+    .modal.open{display:flex}
+    .modal .box{width:720px;max-width:95%;background:#071028;padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    .row{display:flex;gap:10px;align-items:center}
+    .badge{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.02);font-weight:700}
+    /* responsive */
+    @media (max-width:980px){
+      .app{grid-template-columns:1fr; padding:12px}
+      #map{height:420px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="SafeSpace AI Women Safety Frontend (Demo)">
+    <div class="left">
+      <header>
+        <div class="logo">SS</div>
+        <div>
+          <h1>SafeSpace — AI Women Safety</h1>
+          <p class="lead">Proactive SOS, AI risk prediction & companion mode — frontend demo</p>
+        </div>
+      </header>
+
+      <div class="card panic" aria-live="polite">
+        <div class="big" id="panicPulse" aria-hidden="false">SOS</div>
+        <div style="max-width:320px;">
+          <div style="font-weight:700">Panic Button</div>
+          <div class="small">Press or say "Help me!" to send SOS. Records evidence & shares live location.</div>
+        </div>
+        <div class="controls">
+          <button id="panicBtn" type="button">PRESS PANIC</button>
+          <button id="voiceBtn" type="button">Start Voice AI</button>
+          <button id="companionBtn" type="button">Start Companion</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center">
+          <div class="chip" id="gpsStatus" aria-live="polite">GPS: —</div>
+          <div class="chip" id="netStatus" aria-live="polite">Network: —</div>
+          <div class="chip" id="recStatus" aria-live="polite">Recording: Off</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-weight:700">AI Danger Prediction</div>
+          <div class="legend" aria-hidden="true">
+            <div class="dot green"></div><div class="muted-small">Safe</div>
+            <div class="dot yellow"></div><div class="muted-small">Moderate</div>
+            <div class="dot red"></div><div class="muted-small">Unsafe</div>
+          </div>
+        </div>
+        <div class="small">Map shows smart risk zones derived from crowd reports & news (demo data). If you walk into a Red zone you'll get cautions.</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-weight:700">Community & Devices</div>
+          <div style="font-size:13px;color:var(--muted)">Nearby users: <strong id="nearbyCount">0</strong></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="mockNearby" type="button">Simulate Nearby Helper</button>
+          <button id="wearableBtn" type="button">Pair Wearable</button>
+          <button id="smsApiBtn" type="button">Test SMS API</button>
+        </div>
+        <div style="margin-top:10px" class="small">Offline-first queue stores unsent alerts and syncs when online.</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:700">AI Chatbot & Reports</div>
+          <div class="badge">Weekly Report</div>
+        </div>
+        <div style="margin-top:10px" class="small">
+          This demo includes a chatbot button that opens a simulated emotional support chat and a generated safety summary.
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button id="openChat" type="button">Open Chatbot</button>
+          <button id="genReport" type="button">Generate Safety Report</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="tools">
+        <div class="status" role="status" aria-live="polite">
+          <div class="dot green" style="width:10px;height:10px"></div>
+          <div id="zoneText">Zone: —</div>
+        </div>
+        <div style="flex:1"></div>
+        <div id="companionInfo" class="muted-small">Companion: Off</div>
+      </div>
+
+      <div id="map" role="region" aria-label="Map"></div>
+
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;justify-content:space-between">
+        <div class="muted-small">Instant Evidence Capture: front/back 15s recording on SOS. Records saved locally & queued for upload.</div>
+        <div style="display:flex;gap:8px">
+          <button id="downloadEvidence" type="button">Download Latest Evidence</button>
+          <button id="viewQueue" type="button">View Offline Queue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Chat / Alerts / Queue -->
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="box" role="document">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-weight:700" id="modalTitle">Modal</div>
+        <button id="closeModal" type="button">Close</button>
+      </div>
+      <div id="modalBody" style="max-height:60vh;overflow:auto"></div>
+    </div>
+  </div>
+
+  <!-- Leaflet & polyfill -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // Basic state
+    const state = {
+      map: null,
+      userMarker: null,
+      zones: [],
+      nearby: [],
+      companion: { active: false, path: [], expected: null, startedAt: null },
+      offlineQueue: JSON.parse(localStorage.getItem('ss_queue') || '[]'),
+      lastEvidence: null,
+      recording: false,
+      mediaRecorder: null,
+      recognition: null,
+      voiceActive: false
+    };
+
+    // Demo zones
+    state.zones = [
+      { id:1, center:[37.7749, -122.4194], radius:500, severity:2, reports:2, name:"Market Park" },
+      { id:2, center:[37.768, -122.431], radius:420, severity:3, reports:6, name:"Old Station" },
+      { id:3, center:[37.781, -122.41], radius:360, severity:1, reports:1, name:"River Walk" }
+    ];
+
+    // Network status (UI)
+    function updateNetworkStatus(){
+      const online = navigator.onLine;
+      const el = document.getElementById('netStatus');
+      el.textContent = online ? 'Network: Online' : 'Network: Offline';
+      el.style.color = online ? '#9fffdc' : '#ffb3b3';
+      if(online) flushQueue();
+    }
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+
+    // Map init
+    function initMap(){
+      state.map = L.map('map').setView([37.7749, -122.4194], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(state.map);
+
+      state.zones.forEach(z=>{
+        const color = z.severity===1? '#3ad29f' : z.severity===2? '#ffb020' : '#ff6b6b';
+        L.circle(z.center, {radius:z.radius, color:color, fillColor: color, fillOpacity:0.12, weight:2})
+          .addTo(state.map)
+          .bindPopup(<strong>${z.name}</strong><div>Reports: ${z.reports}</div>);
+      });
+
+      state.userMarker = L.marker([37.7749, -122.4194], {title:"You"}).addTo(state.map);
+      trackLocation();
+    }
+
+    // Geolocation tracking & helper
+    function trackLocation(){
+      if(!navigator.geolocation){
+        document.getElementById('gpsStatus').textContent = 'GPS: Unavailable';
+        return;
+      }
+      navigator.geolocation.watchPosition(pos=>{
+        const lat = pos.coords.latitude, lon = pos.coords.longitude;
+        document.getElementById('gpsStatus').textContent = GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)};
+        state.userMarker.setLatLng([lat,lon]);
+        state.map.setView([lat,lon], state.map.getZoom());
+        checkZone([lat,lon]);
+        if(state.companion.active) companionHeartbeat([lat,lon]);
+      }, err=>{
+        document.getElementById('gpsStatus').textContent = 'GPS: Denied';
+      }, {enableHighAccuracy:true, maximumAge:3000});
+    }
+
+    // Danger detection (demo)
+    function checkZone([lat,lon]){
+      let found = null;
+      for(const z of state.zones){
+        const d = distanceMeters(lat, lon, z.center[0], z.center[1]);
+        if(d <= z.radius){ found = z; break; }
+      }
+      const el = document.getElementById('zoneText');
+      if(found){
+        const text = found.severity===3 ? Caution: ${found.name} has ${found.reports}+ incidents recently : found.severity===2 ? Moderate risk: ${found.name} : Safe: ${found.name};
+        el.textContent = text;
+        el.style.color = found.severity===3 ? '#ff6b6b' : found.severity===2 ? '#ffb020' : '#9fffdc';
+        if(found.severity===3){
+          flashWarning(Caution: ${found.reports}+ incidents in last month. Stay alert!);
+        }
+      } else {
+        el.textContent = 'Zone: No notable incidents';
+        el.style.color = '#9fffdc';
+      }
+    }
+
+    function distanceMeters(lat1,lon1,lat2,lon2){
+      const R=6371000;
+      const toRad = x => x*Math.PI/180;
+      const dLat=toRad(lat2-lat1); const dLon=toRad(lon2-lon1);
+      const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)*Math.sin(dLon/2);
+      const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+      return R*c;
+    }
+
+    function flashWarning(msg){
+      const el = document.getElementById('panicPulse');
+      el.textContent = '⚠ ALERT';
+      el.style.background = 'radial-gradient(circle at 30% 20%, rgba(255,178,32,0.18), rgba(255,178,32,0.04))';
+      setTimeout(()=>{ el.textContent='SOS'; el.style.background = ''; }, 5000);
+      showModal('Area Alert', <div style="color:#ffb020;font-weight:700">${msg}</div>);
+    }
+
+    // ---- SOS / queue handling ----
+    async function sendSOS(reason='User triggered SOS', evidenceBlob=null){
+      const pos = await getCurrentPosition();
+      const payload = {
+        reason, time: new Date().toISOString(), location: pos, deviceInfo: navigator.userAgent
+      };
+      if(evidenceBlob){
+        payload.evidence = { size: evidenceBlob.size, type: evidenceBlob.type, storedAt: new Date().toISOString() };
+      }
+
+      const apiUrl = '/api/alert'; // placeholder
+      if(navigator.onLine){
+        try {
+          // demo: attempt to POST (likely 404 in static demo)
+          const form = new FormData();
+          form.append('payload', JSON.stringify(payload));
+          if(evidenceBlob) form.append('evidence', evidenceBlob, 'evidence.webm');
+          const res = await fetch(apiUrl, {method:'POST', body: form});
+          if(!res.ok) throw new Error('Server not ready');
+          showModal('SOS Sent', <div>Alert sent successfully to your emergency contacts.</div>);
+        } catch(e){
+          queueSOS(payload, evidenceBlob);
+          showModal('SOS Queued', <div>Could not reach server. SOS saved locally and will be retried when online.</div>);
+        }
+      } else {
+        queueSOS(payload, evidenceBlob);
+        showModal('SOS Queued', <div>No network. SOS saved locally and will send when online.</div>);
+      }
+    }
+
+    function queueSOS(payload, blob){
+      state.offlineQueue.push({payload, blobMeta: blob ? {size: blob.size, type: blob.type, time: new Date().toISOString()} : null});
+      localStorage.setItem('ss_queue', JSON.stringify(state.offlineQueue));
+      document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
+    }
+
+    async function flushQueue(){
+      if(state.offlineQueue.length===0) return;
+      // Demo: mark as flushed and clear. Replace with real retry logic in production.
+      console.log('Flushing queue', state.offlineQueue);
+      state.offlineQueue = [];
+      localStorage.setItem('ss_queue', JSON.stringify(state.offlineQueue));
+      document.getElementById('viewQueue').textContent = View Offline Queue (0);
+      showModal('Queue Synced', '<div>Offline alerts synced (demo).</div>');
+    }
+
+    // get current location promise
+    function getCurrentPosition(){
+      return new Promise((resolve)=>{
+        if(!navigator.geolocation) return resolve({lat:null,lon:null});
+        navigator.geolocation.getCurrentPosition(p=>{
+          resolve({lat:p.coords.latitude, lon:p.coords.longitude, accuracy:p.coords.accuracy});
+        }, e=>resolve({lat:null,lon:null}));
+      });
+    }
+
+    // ---- Voice recognition (Web Speech) ----
+    function initVoice(){
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if(!SpeechRecognition){
+        document.getElementById('voiceBtn').textContent = 'Voice AI Unavailable';
+        return;
+      }
+      const rec = new SpeechRecognition();
+      rec.continuous = true;
+      rec.interimResults = false;
+      rec.lang = 'en-US';
+      rec.onresult = (evt)=>{
+        const transcript = Array.from(evt.results).slice(-1)[0][0].transcript.trim();
+        console.log('voice:', transcript);
+        if(/help|dont touch|no|stop|rape|no please/i.test(transcript)){
+          triggerAutoSOS('Voice panic phrase detected');
+        }
+      };
+      rec.onstart = ()=>{ state.voiceActive = true; document.getElementById('voiceBtn').textContent = 'Stop Voice AI'; };
+      rec.onend = ()=>{ state.voiceActive = false; document.getElementById('voiceBtn').textContent = 'Start Voice AI'; };
+      rec.onerror = (e)=>{ console.warn('Speech error', e); state.voiceActive=false; document.getElementById('voiceBtn').textContent = 'Start Voice AI'; };
+      state.recognition = rec;
+    }
+
+    function toggleVoice(){
+      if(!state.recognition) return;
+      try{
+        if(state.voiceActive){ state.recognition.stop(); }
+        else { state.recognition.start(); }
+      }catch(e){ console.warn(e); }
+    }
+
+    // ---- Motion detection (DeviceMotion) ----
+    let motionState = { lastTime:0, shakeCount:0 };
+    function initMotion(){
+      if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function'){
+        // iOS permission flow - don't request automatically; do it on user gesture
+        // We'll still add a small hint - actual request occurs when user clicks Panic first time.
+        console.log('iOS DeviceMotion permission available; request on user action.');
+      }
+      window.addEventListener('devicemotion', (ev)=>{
+        const acc = ev.accelerationIncludingGravity;
+        if(!acc) return;
+        const mag = Math.sqrt((acc.x||0)*2 + (acc.y||0)2 + (acc.z||0)*2);
+        const now = Date.now();
+        if(mag > 25 && (now - motionState.lastTime) > 700){ // threshold + debounce
+          motionState.lastTime = now;
+          motionState.shakeCount++;
+          if(motionState.shakeCount > 1){
+            motionState.shakeCount = 0;
+            triggerAutoSOS('Sudden motion detected (possible struggle)');
+          }
+        }
+      });
+    }
+
+    // ---- Companion mode ----
+    function startCompanion(){
+      state.companion.active = true;
+      state.companion.path = [];
+      state.companion.startedAt = Date.now();
+      state.companion.expected = null;
+      document.getElementById('companionInfo').textContent = 'Companion: Active';
+      showModal('Companion Mode', <div>Companion mode active. The app will monitor your path and ask if you're OK when anomalies occur.</div>);
+    }
+    function stopCompanion(){
+      state.companion.active = false;
+      document.getElementById('companionInfo').textContent = 'Companion: Off';
+    }
+    async function companionHeartbeat([lat,lon]){
+      state.companion.path.push([lat,lon, Date.now()]);
+      if(state.companion.path.length>3){
+        const start = state.companion.path[0];
+        const d = distanceMeters(start[0], start[1], lat, lon);
+        if(d > 200){
+          const ok = await askUserConfirmation('Off-route detected. Are you okay?');
+          if(!ok) triggerAutoSOS('Companion: no response to safety check');
+        }
+      }
+    }
+
+    function askUserConfirmation(message){
+      return new Promise((resolve)=>{
+        showModal('Safety Check', <div>${message}</div><div style="margin-top:12px;display:flex;gap:8px"><button id="yesOk" type="button">Yes</button><button id="noOk" type="button">No</button></div>);
+        document.getElementById('yesOk').addEventListener('click', ()=>{ closeModal(); resolve(true); });
+        document.getElementById('noOk').addEventListener('click', ()=>{ closeModal(); resolve(false); });
+        setTimeout(()=>{ try{ closeModal(); }catch(e){} resolve(false); }, 12000);
+      });
+    }
+
+    // ---- Evidence capture: returns Blob when complete ----
+    async function recordEvidence(duration=15, facingMode='user'){
+      // Request permission first; show small consent UI to avoid surprising user
+      const consent = confirm('SafeSpace will capture short audio/video evidence for this SOS. Allow camera & microphone?');
+      if(!consent) return null;
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return null;
+      try {
+        const constraints = { audio:true, video: { facingMode } };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        // Choose MIME that's supported
+        let mime = 'video/webm;codecs=vp8,opus';
+        if(!MediaRecorder.isTypeSupported(mime)){
+          // fallback attempt
+          mime = MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '';
+        }
+        const chunks = [];
+        return await new Promise((resolve, reject)=>{
+          try{
+            const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+            mr.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+            mr.onstop = ()=>{
+              const blob = new Blob(chunks, { type: chunks[0]?.type || 'video/webm' });
+              state.lastEvidence = blob;
+              document.getElementById('recStatus').textContent = 'Recording: Off';
+              document.getElementById('downloadEvidence').disabled = false;
+              // stop all tracks
+              stream.getTracks().forEach(t=>t.stop());
+              resolve(blob);
+            };
+            mr.onerror = (err)=>{ console.warn('Recorder error', err); stream.getTracks().forEach(t=>t.stop()); reject(err); };
+            mr.start();
+            document.getElementById('recStatus').textContent = 'Recording: On';
+            // stop after duration (safety)
+            setTimeout(()=>{ if(mr.state === 'recording') mr.stop(); }, Math.max(3, duration)*1000);
+          }catch(e){
+            stream.getTracks().forEach(t=>t.stop());
+            reject(e);
+          }
+        });
+      } catch(e){
+        console.warn('recording failed', e);
+        return null;
+      }
+    }
+
+    // Convenience: download existing evidence blob
+    function downloadEvidence(){
+      const b = state.lastEvidence;
+      if(!b){ alert('No evidence recorded yet'); return; }
+      const url = URL.createObjectURL(b);
+      const a = document.createElement('a'); a.href = url; a.download = 'evidence.webm'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    }
+
+    // ---- Auto SOS flow used by motion/voice ----
+    async function triggerAutoSOS(reason){
+      // capture short evidence and await the blob
+      try{
+        const blob = await recordEvidence(10, 'user'); // returns blob or null
+        await sendSOS(reason, blob);
+      }catch(e){
+        console.warn('Auto SOS failed', e);
+        await sendSOS(reason, null); // still send minimal alert
+      }
+    }
+
+    // ---- UI modal helpers ----
+    function showModal(title, html){
+      const modal = document.getElementById('modal');
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = html;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+      // focus the close button for keyboard users
+      document.getElementById('closeModal').focus();
+    }
+    function closeModal(){
+      const modal = document.getElementById('modal');
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden','true');
+    }
+
+    // Chatbot (simple)
+    function openChatbot(){
+      showModal('SafeSpace Chatbot', `<div style="font-size:14px">Hi, I'm a small support bot. You can type how you feel.</div>
+        <div style="margin-top:10px"><input id="chatInput" placeholder="I feel..." style="width:80%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04)"><button id="chatSend" type="button">Send</button></div>
+        <div id="chatLog" style="margin-top:12px;color:${'var(--muted)'}"></div>`);
+      document.getElementById('chatSend').addEventListener('click', ()=>{
+        const v = document.getElementById('chatInput').value || '';
+        document.getElementById('chatLog').innerHTML = <div style="color:#bfe6ff">You: ${escapeHtml(v)}</div><div style="margin-top:8px">Bot: I'm sorry you're feeling that way. If you need immediate help press SOS.</div>;
+      });
+    }
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+    // simulate nearby helper
+    function simulateNearby(){
+      state.nearby.push({id:Date.now(), dist: Math.round(Math.random()*400)});
+      document.getElementById('nearbyCount').textContent = state.nearby.length;
+      showModal('Nearby Helper', <div>${state.nearby[state.nearby.length-1].dist}m away: A verified helper is near you (demo)</div><div style="margin-top:10px"><button id="assistBtn" type="button">Request Assistance</button></div>);
+      document.getElementById('assistBtn').addEventListener('click', ()=>{ closeModal(); showModal('Assistance Sent', '<div>Nearby helper notified (demo).</div>'); });
+    }
+
+    // wearable pairing (demo)
+    function pairWearable(){
+      showModal('Pair Wearable', <div>Simulate pairing with a wearable. Press Connect to pair (demo).</div><div style="margin-top:10px"><button id="connectWear" type="button">Connect</button></div>);
+      document.getElementById('connectWear').addEventListener('click', ()=>{ closeModal(); showModal('Paired', '<div>Wearable paired. Pressing the wearable will trigger SOS (demo).</div>'); });
+    }
+
+    // SMS API test (demo)
+    async function testSmsApi(){
+      showModal('Test SMS API', '<div>Simulating send SMS/call via integrated API (demo). Attempting to call /api/send-sms ...</div>');
+      try {
+        const res = await fetch('/api/send-sms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:'+123456789',msg:'Test from SafeSpace demo'})});
+        if(!res.ok) throw new Error('no server');
+        closeModal(); showModal('SMS Sent', '<div>SMS sent (demo).</div>');
+      } catch(e){
+        closeModal(); showModal('SMS API Unavailable', '<div>API unreachable in demo. Implement server-side integration to send SMS/calls.</div>');
+      }
+    }
+
+    // view offline queue
+    function viewQueue(){
+      showModal('Offline Queue', <div>Queued items: ${state.offlineQueue.length}</div><pre style="margin-top:10px">${JSON.stringify(state.offlineQueue,null,2)}</pre>);
+    }
+
+    // Modal close button
+    document.getElementById('closeModal').addEventListener('click', closeModal);
+
+    // Button hooks
+    document.getElementById('panicBtn').addEventListener('click', async ()=>{
+      // For iOS DeviceMotion permission: request on first user gesture
+      if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function'){
+        try { await DeviceMotionEvent.requestPermission(); } catch(e){ /* user may deny */ }
+      }
+      // capture quick evidence then send
+      document.getElementById('panicBtn').disabled = true;
+      try{
+        const blob = await recordEvidence(10, 'environment');
+        await sendSOS('Manual panic pressed', blob);
+      }catch(e){
+        console.warn('panic path failed', e);
+        await sendSOS('Manual panic pressed', null);
+      } finally {
+        document.getElementById('panicBtn').disabled = false;
+      }
+    });
+
+    document.getElementById('voiceBtn').addEventListener('click', ()=>toggleVoice());
+    document.getElementById('companionBtn').addEventListener('click', ()=>{
+      if(!state.companion.active) startCompanion(); else { stopCompanion(); showModal('Companion Stopped','<div>Companion mode stopped.</div>'); }
+    });
+
+    document.getElementById('mockNearby').addEventListener('click', simulateNearby);
+    document.getElementById('wearableBtn').addEventListener('click', pairWearable);
+    document.getElementById('smsApiBtn').addEventListener('click', testSmsApi);
+    document.getElementById('openChat').addEventListener('click', openChatbot);
+    document.getElementById('genReport').addEventListener('click', ()=> {
+      showModal('Weekly Safety Report', <div style="font-weight:700">Weekly Summary</div><div style="margin-top:8px">You crossed 2 unsafe zones this week. Average alert time improved by 2s. Recommend avoiding Old Station after 9PM.</div>);
+    });
+    document.getElementById('viewQueue').addEventListener('click', viewQueue);
+    document.getElementById('downloadEvidence').addEventListener('click', downloadEvidence);
+
+    // Setup initial UI
+    function initUI(){
+      document.getElementById('downloadEvidence').disabled = true;
+      document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
+      updateNetworkStatus();
+    }
+
+    function showTemp(msg, ms=3500){
+      showModal('Info', <div>${msg}</div>);
+      setTimeout(()=>closeModal(), ms);
+    }
+
+    // Initialize everything
+    window.addEventListener('load', ()=>{
+      initUI();
+      initMap();
+      initVoice();
+      initMotion();
+      setTimeout(()=>showTemp('Demo frontend ready — this is a client-only simulation of SafeSpace features.',2200), 800);
+      // expose for debugging
+      window._ss = state;
+    });
+  </script>
+</body>
+</html>
