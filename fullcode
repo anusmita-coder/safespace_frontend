@@ -417,8 +417,10 @@ state.zones = [
 function updateNetworkStatus() {
   const online = navigator.onLine;
   const el = document.getElementById('netStatus');
-  el.textContent = online ? 'Network: Online' : 'Network: Offline';
-  el.style.color = online ? '#9fffdc' : '#ffb3b3';
+  if (el) {
+    el.textContent = online ? 'Network: Online' : 'Network: Offline';
+    el.style.color = online ? '#9fffdc' : '#ffb3b3';
+  }
   if (online) { flushQueue(); syncZones(); }
 }
 window.addEventListener('online', updateNetworkStatus);
@@ -466,27 +468,31 @@ function initMap() {
     trackLocation();
 
     state.map.on('popupopen', function(e) {
-      const popupEl = e.popup._contentNode || e.popup.getElement();
+      // newer Leaflet may provide getElement() or _contentNode depending on version
+      const popupEl = (e.popup && (e.popup._contentNode || (typeof e.popup.getElement === 'function' && e.popup.getElement()))) || null;
       if (!popupEl) return;
       popupEl.querySelectorAll('.popup-btn').forEach(btn => {
         btn.addEventListener('click', (ev) => {
           const zid = Number(ev.currentTarget.dataset.zone);
           const act = ev.currentTarget.dataset.action;
           reportZone(zid, act === 'unsafe' ? 'unsafe' : 'safe');
-          state.map.closePopup();
+          if (state.map) state.map.closePopup();
         });
       });
     });
 
   } catch (error) {
     console.error('Map initialization failed:', error);
-    document.getElementById('map').innerHTML = `
+    const mapEl = document.getElementById('map');
+    if (mapEl) {
+      mapEl.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);text-align:center">
         <div>
           <div style="font-size:18px;margin-bottom:8px">Map Unavailable</div>
           <div>Location tracking will continue in background</div>
         </div>
       </div>`;
+    }
   }
 }
 
@@ -494,7 +500,7 @@ let watchId = null;
 function trackLocation() {
   const gpsEl = document.getElementById('gpsStatus');
   if (!('geolocation' in navigator)) {
-    gpsEl.textContent = 'GPS: Unavailable';
+    if (gpsEl) gpsEl.textContent = 'GPS: Unavailable';
     return;
   }
   const options = { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 };
@@ -502,7 +508,7 @@ function trackLocation() {
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
     const accuracy = pos.coords.accuracy;
-    gpsEl.textContent = GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)};
+    if (gpsEl) gpsEl.textContent = `GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
     if (state.userMarker) state.userMarker.setLatLng([lat, lon]);
     if (state.map && state.map._loaded) state.map.setView([lat, lon], state.map.getZoom());
     checkZone([lat, lon]);
@@ -511,10 +517,10 @@ function trackLocation() {
   }, err => {
     console.error('Geolocation error:', err);
     let message = 'GPS: Error';
-    if (err.code === err.PERMISSION_DENIED) message = 'GPS: Permission Denied';
-    else if (err.code === err.POSITION_UNAVAILABLE) message = 'GPS: Unavailable';
-    else if (err.code === err.TIMEOUT) message = 'GPS: Timeout';
-    gpsEl.textContent = message;
+    if (err && err.code === err.PERMISSION_DENIED) message = 'GPS: Permission Denied';
+    else if (err && err.code === err.POSITION_UNAVAILABLE) message = 'GPS: Unavailable';
+    else if (err && err.code === err.TIMEOUT) message = 'GPS: Timeout';
+    if (gpsEl) gpsEl.textContent = message;
     showToast('Location services unavailable', 'warning');
   }, options);
 }
@@ -532,20 +538,22 @@ function checkZone([lat, lon]) {
     if (d <= z.radius) { found = z; break; }
   }
   const el = document.getElementById('zoneText');
-  if (found) {
-    const text = found.severity === 3
-      ? Caution: ${found.name} has ${found.reports}+ incidents
-      : found.severity === 2
-        ? Moderate risk: ${found.name}
-        : Safe: ${found.name};
-    el.textContent = text;
-    el.style.color = found.severity === 3 ? '#ff6b6b' : found.severity === 2 ? '#ffb020' : '#9fffdc';
-    if (found.severity === 3) flashWarning(Caution: ${found.reports}+ incidents reported. Stay alert!);
-  } else {
-    el.textContent = closestDistance < 1000
-      ? Nearest zone: ${Math.round(closestDistance)}m away
-      : 'Zone: No notable incidents nearby';
-    el.style.color = '#9fffdc';
+  if (el) {
+    if (found) {
+      const text = found.severity === 3
+        ? `Caution: ${found.name} has ${found.reports}+ incidents`
+        : found.severity === 2
+          ? `Moderate risk: ${found.name}`
+          : `Safe: ${found.name}`;
+      el.textContent = text;
+      el.style.color = found.severity === 3 ? '#ff6b6b' : found.severity === 2 ? '#ffb020' : '#9fffdc';
+      if (found.severity === 3) flashWarning(`Caution: ${found.reports}+ incidents reported. Stay alert!`);
+    } else {
+      el.textContent = closestDistance < 1000
+        ? `Nearest zone: ${Math.round(closestDistance)}m away`
+        : 'Zone: No notable incidents nearby';
+      el.style.color = '#9fffdc';
+    }
   }
 }
 
@@ -562,8 +570,8 @@ function distanceMeters(lat1, lon1, lat2, lon2) {
 
 function flashWarning(msg) {
   const el = document.getElementById('panicPulse');
-  const originalText = el.textContent;
-  el.textContent = 'ALERT';
+  const originalText = el ? el.textContent : '';
+  if (el) el.textContent = 'ALERT';
   document.body.classList.add('emergency-mode');
   playAlertSound();
   showModal('Area Alert', `
@@ -574,7 +582,7 @@ function flashWarning(msg) {
     </div>
   `);
   setTimeout(() => {
-    el.textContent = originalText;
+    if (el) el.textContent = originalText;
     document.body.classList.remove('emergency-mode');
   }, 10000);
 }
@@ -611,12 +619,12 @@ async function sendSOS(reason = 'User triggered SOS', evidenceBlob = null) {
     try {
       const form = new FormData();
       form.append('payload', JSON.stringify(payload));
-      if (evidenceBlob) form.append('evidence', evidenceBlob, evidence_${Date.now()}.webm);
+      if (evidenceBlob) form.append('evidence', evidenceBlob, `evidence_${Date.now()}.webm`);
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       const res = await fetch(apiUrl, { method: 'POST', body: form, signal: controller.signal });
       clearTimeout(timeoutId);
-      if (!res.ok) throw new Error(Server error: ${res.status});
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
       showModal('SOS Sent', `
         <div style="color:var(--success);font-weight:700;margin-bottom:12px">Alert sent successfully!</div>
         <div>Your emergency contacts have been notified with your location.</div>
@@ -631,7 +639,7 @@ async function sendSOS(reason = 'User triggered SOS', evidenceBlob = null) {
         <div>Could not reach server. SOS has been saved locally and will be sent when connection is restored.</div>
         <div style="margin-top:12px;font-size:13px;color:var(--muted)">You can still use the app offline.</div>
       `);
-      logEvent('sos_queued', { reason, error: e.message });
+      logEvent('sos_queued', { reason, error: e.message || String(e) });
     }
   } else {
     queueSOS(payload, evidenceBlob);
@@ -654,7 +662,8 @@ function queueSOS(payload, blob) {
   };
   state.offlineQueue.push(queueItem);
   localStorage.setItem('ss_queue', JSON.stringify(state.offlineQueue));
-  document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
+  const viewQueueEl = document.getElementById('viewQueue');
+  if (viewQueueEl) viewQueueEl.textContent = `View Offline Queue (${state.offlineQueue.length})`;
 }
 
 async function flushQueue() {
@@ -666,29 +675,35 @@ async function flushQueue() {
     try {
       const form = new FormData();
       form.append('payload', JSON.stringify(item.payload));
+      // NOTE: offline blob upload is not stored here; if you have blob storage, append it similarly
       const res = await fetch('/api/alert', { method: 'POST', body: form });
-      if (!res.ok) throw new Error(HTTP ${res.status});
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       logEvent('queued_sos_sent', { id: item.id });
       sentCount++;
     } catch (e) {
-      item.attempts++;
+      item.attempts = (item.attempts || 0) + 1;
       item.lastAttempt = new Date().toISOString();
       remaining.push(item);
       console.error('Failed to send queued SOS:', e);
     }
+    // small delay to avoid hammering server
     await new Promise(r => setTimeout(r, 100));
   }
   state.offlineQueue = remaining;
   localStorage.setItem('ss_queue', JSON.stringify(state.offlineQueue));
-  document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
-  if (sentCount > 0) showToast(${sentCount} alerts sent, 'success');
+  const viewQueueEl = document.getElementById('viewQueue');
+  if (viewQueueEl) viewQueueEl.textContent = `View Offline Queue (${state.offlineQueue.length})`;
+  if (sentCount > 0) showToast(`${sentCount} alerts sent`, 'success');
 }
 
 function initVoice() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const voiceBtn = document.getElementById('voiceBtn');
   if (!SpeechRecognition) {
-    document.getElementById('voiceBtn').textContent = 'Voice AI Unavailable';
-    document.getElementById('voiceBtn').disabled = true;
+    if (voiceBtn) {
+      voiceBtn.textContent = 'Voice AI Unavailable';
+      voiceBtn.disabled = true;
+    }
     return;
   }
   const rec = new SpeechRecognition();
@@ -709,15 +724,19 @@ function initVoice() {
 
   rec.onstart = () => {
     state.voiceActive = true;
-    document.getElementById('voiceBtn').textContent = 'Stop Voice AI';
-    document.getElementById('voiceBtn').style.background = 'var(--success)';
+    if (voiceBtn) {
+      voiceBtn.textContent = 'Stop Voice AI';
+      voiceBtn.style.background = 'var(--success)';
+    }
     showToast('Voice monitoring active', 'success');
   };
 
   rec.onend = () => {
     state.voiceActive = false;
-    document.getElementById('voiceBtn').textContent = 'Start Voice AI';
-    document.getElementById('voiceBtn').style.background = '';
+    if (voiceBtn) {
+      voiceBtn.textContent = 'Start Voice AI';
+      voiceBtn.style.background = '';
+    }
     if (state.userSettings.voiceEnabled) {
       setTimeout(() => {
         try { rec.start(); } catch (e) { console.warn('Voice restart failed:', e); }
@@ -728,9 +747,11 @@ function initVoice() {
   rec.onerror = (e) => {
     console.warn('Speech recognition error:', e);
     state.voiceActive = false;
-    document.getElementById('voiceBtn').textContent = 'Start Voice AI';
-    document.getElementById('voiceBtn').style.background = '';
-    if (e.error === 'not-allowed') showToast('Microphone permission denied', 'error');
+    if (voiceBtn) {
+      voiceBtn.textContent = 'Start Voice AI';
+      voiceBtn.style.background = '';
+    }
+    if (e && e.error === 'not-allowed') showToast('Microphone permission denied', 'error');
   };
 
   state.recognition = rec;
@@ -740,9 +761,13 @@ function startCompanion() {
   state.companion.active = true;
   state.companion.path = [];
   state.companion.startedAt = Date.now();
-  document.getElementById('companionInfo').textContent = 'Companion: Active';
-  document.getElementById('companionBtn').textContent = 'Stop Companion';
-  document.getElementById('companionBtn').style.background = 'var(--success)';
+  const info = document.getElementById('companionInfo');
+  if (info) info.textContent = 'Companion: Active';
+  const btn = document.getElementById('companionBtn');
+  if (btn) {
+    btn.textContent = 'Stop Companion';
+    btn.style.background = 'var(--success)';
+  }
   showModal('Companion Mode Active', `
     <div style="margin-bottom:12px">Companion mode is now active. The app will:</div>
     <ul style="margin:0;padding-left:20px;color:var(--muted)">
@@ -760,9 +785,13 @@ function startCompanion() {
 
 function stopCompanion() {
   state.companion.active = false;
-  document.getElementById('companionInfo').textContent = 'Companion: Off';
-  document.getElementById('companionBtn').textContent = 'Start Companion';
-  document.getElementById('companionBtn').style.background = '';
+  const info = document.getElementById('companionInfo');
+  if (info) info.textContent = 'Companion: Off';
+  const btn = document.getElementById('companionBtn');
+  if (btn) {
+    btn.textContent = 'Start Companion';
+    btn.style.background = '';
+  }
   logEvent('companion_stopped');
 }
 
@@ -789,10 +818,12 @@ function playAlertSound() {
 function showToast(message, type = 'info') {
   document.querySelectorAll('.toast').forEach(t => t.remove());
   const toast = document.createElement('div');
-  toast.className = toast ${type};
-  toast.innerHTML = <div>${message}</div><button aria-label="close toast" style="background:none;border:none;color:white;cursor:pointer">×</button>;
-  toast.querySelector('button').addEventListener('click', () => toast.remove());
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<div>${message}</div><button aria-label="close toast" style="background:none;border:none;color:white;cursor:pointer">×</button>`;
+  const btn = toast.querySelector('button');
+  if (btn) btn.addEventListener('click', () => toast.remove());
   document.body.appendChild(toast);
+  // small delay to allow CSS transitions if any
   setTimeout(() => toast.classList.add('show'), 10);
   setTimeout(() => {
     toast.classList.remove('show');
@@ -816,19 +847,29 @@ function storeLocationHistory(lat, lon, accuracy) {
 
 function showModal(title, html) {
   const modal = document.getElementById('modal');
-  document.getElementById('modalTitle').textContent = title;
-  document.getElementById('modalBody').innerHTML = html;
+  if (!modal) {
+    // fallback: alert
+    console.warn('Modal element not found. Falling back to alert.');
+    alert(title + '\n\n' + html.replace(/<[^>]+>/g, ''));
+    return;
+  }
+  const titleEl = document.getElementById('modalTitle');
+  const bodyEl = document.getElementById('modalBody');
+  if (titleEl) titleEl.textContent = title;
+  if (bodyEl) bodyEl.innerHTML = html;
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
 }
 
 function closeModal() {
   const modal = document.getElementById('modal');
+  if (!modal) return;
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
 }
 
-document.getElementById('closeModal').addEventListener('click', closeModal);
+const closeModalBtn = document.getElementById('closeModal');
+if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
 
 function reportZone(id, type) {
   const z = state.zones.find(zz => zz.id === id);
@@ -843,26 +884,34 @@ function reportZone(id, type) {
   showToast('Thanks — zone updated', 'success');
 }
 
-function syncZones() { /* placeholder */ }
+function syncZones() { /* placeholder: implement server sync if needed */ }
 function triggerAutoSOS(reason) { sendSOS(reason); }
 function triggerSOS(reason) { sendSOS(reason); }
 
 function initUI() {
-  document.getElementById('downloadEvidence').disabled = !state.lastEvidence;
-  document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
+  const downloadEvidenceBtn = document.getElementById('downloadEvidence');
+  if (downloadEvidenceBtn) downloadEvidenceBtn.disabled = !state.lastEvidence;
+  const viewQueueEl = document.getElementById('viewQueue');
+  if (viewQueueEl) viewQueueEl.textContent = `View Offline Queue (${state.offlineQueue.length})`;
   updateNetworkStatus();
+
   document.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && e.target === document.body) {
       e.preventDefault();
-      document.getElementById('panicBtn').click();
+      const panicBtn = document.getElementById('panicBtn');
+      if (panicBtn) panicBtn.click();
     }
     if (e.code === 'Escape') closeModal();
   });
-  const sosButton = document.getElementById('panicPulse');
-  sosButton.classList.add('pulsing');
 
-  document.getElementById('panicBtn').addEventListener('click', () => triggerSOS('User pressed panic'));
-  document.getElementById('voiceBtn').addEventListener('click', () => {
+  const sosButton = document.getElementById('panicPulse');
+  if (sosButton) sosButton.classList.add('pulsing');
+
+  const panicBtn = document.getElementById('panicBtn');
+  if (panicBtn) panicBtn.addEventListener('click', () => triggerSOS('User pressed panic'));
+
+  const voiceBtn = document.getElementById('voiceBtn');
+  if (voiceBtn) voiceBtn.addEventListener('click', () => {
     if (!state.recognition) return;
     if (!state.voiceActive) {
       try { state.recognition.start(); } catch (e) { console.warn(e); }
@@ -870,15 +919,21 @@ function initUI() {
       state.recognition.stop();
     }
   });
-  document.getElementById('companionBtn').addEventListener('click', () => {
+
+  const companionBtn = document.getElementById('companionBtn');
+  if (companionBtn) companionBtn.addEventListener('click', () => {
     state.companion.active ? stopCompanion() : startCompanion();
   });
-  document.getElementById('mockNearby').addEventListener('click', () => {
-    document.getElementById('nearbyCount').textContent = Number(document.getElementById('nearbyCount').textContent) + 1;
+
+  const mockNearby = document.getElementById('mockNearby');
+  if (mockNearby) mockNearby.addEventListener('click', () => {
+    const nearbyCountEl = document.getElementById('nearbyCount');
+    if (nearbyCountEl) nearbyCountEl.textContent = String(Number(nearbyCountEl.textContent || '0') + 1);
     showToast('Nearby helper simulated', 'success');
   });
-  document.getElementById('viewQueue').addEventListener('click', () => {
-    showModal('Offline Queue', <pre>${JSON.stringify(state.offlineQueue, null, 2)}</pre>);
+
+  if (viewQueueEl) viewQueueEl.addEventListener('click', () => {
+    showModal('Offline Queue', `<pre>${JSON.stringify(state.offlineQueue, null, 2)}</pre>`);
   });
 }
 
@@ -899,4 +954,3 @@ window.addEventListener('load', () => {
 });
 
 
-CODE FOR JS
