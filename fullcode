@@ -7,70 +7,10 @@
   <meta name="description" content="SafeSpace - AI-powered women safety app with SOS, risk prediction, and companion features" />
   <title>SafeSpace — AI Women Safety</title>
 
-  <!-- Leaflet for map (OpenStreetMap) -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
-  <!-- Service Worker Registration -->
-  <script>
-    // Register service worker for offline functionality (safe guard: check origin)
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        const swPath = '/sw.js';
-        navigator.serviceWorker.register(swPath)
-          .then(function(registration) {
-            console.log('SW registered: ', registration);
-          })
-          .catch(function(registrationError) {
-            console.log('SW registration failed: ', registrationError);
-          });
-      });
-    }
-  </script>
-
-  <style>
-    :root {
-      --bg: #0f1724;
-      --card: #0b1220;
-      --accent: #ff4d6d;
-      --muted: #9aa7b2;
-      --glass: rgba(255,255,255,0.04);
-      --success: #3ad29f;
-      --warning: #ffb020;
-      --danger: #ff6b6b;
-      --transition: all 0.3s ease;
-      --shadow: 0 6px 30px rgba(2,6,23,0.7);
-    }
-    html, body { height:100%; margin:0; background:linear-gradient(180deg,#071029 0%,#071833 50%,#0b1b2b 100%); font-family: Inter, system-ui, Roboto, Arial; }
-    .app{ max-width:1200px; margin:28px auto; padding:22px; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); box-shadow:var(--shadow); color:#e6f0f6; display:grid; grid-template-columns:420px 1fr; gap:20px; }
-    header{ display:flex; align-items:center; gap:12px; margin-bottom:12px }
-    .logo{ width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,var(--accent),#6c5ce7); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:20px; color:white; box-shadow:0 6px 18px rgba(109,40,217,0.18); }
-    h1{ font-size:20px; margin:0 }
-    p.lead{ color:var(--muted); margin:0; font-size:13px }
-    .left{ display:flex; flex-direction:column; gap:14px }
-    .card{ background:var(--card); padding:14px; border-radius:12px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); transition:var(--transition) }
-    .panic{ display:flex; flex-direction:column; align-items:center; gap:10px; padding:24px; border-radius:12px; text-align:center; background:linear-gradient(180deg, rgba(255,77,109,0.06), rgba(255,77,109,0.02)); border:1px solid rgba(255,77,109,0.06) }
-    .panic .big{ width:120px; height:120px; border-radius:999px; background:radial-gradient(circle at 30% 20%, rgba(255,77,109,0.22), rgba(255,77,109,0.06)); display:flex; align-items:center; justify-content:center; font-size:28px; color:white; font-weight:700; box-shadow:0 12px 30px rgba(255,77,109,0.08); transition:var(--transition); cursor:pointer }
-    .panic .big.pulsing{ animation:pulse 1.5s infinite }
-    @keyframes pulse{ 0%{ transform:scale(1) } 50%{ transform:scale(1.05) } 100%{ transform:scale(1) } }
-    .panic button{ margin-top:6px; padding:12px 18px; border-radius:10px; border:0; background:var(--accent); color:white; font-weight:700; cursor:pointer; transition:var(--transition) }
-    .controls{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center }
-    .chip{ background:var(--glass); padding:8px 12px; border-radius:999px; font-size:13px; color:var(--muted); border:1px solid rgba(255,255,255,0.02) }
-    #map{ height:680px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.02) }
-    .tools{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px }
-    .tools button{ background:linear-gradient(90deg,#12314a,#0d2232); border:1px solid rgba(255,255,255,0.02); color:#bfe6ff; padding:8px 12px; border-radius:10px; cursor:pointer }
-    .muted-small{ font-size:12px; color:var(--muted) }
-    .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.6)); z-index:9999; backdrop-filter: blur(4px) }
-    .modal.open{ display:flex }
-    .modal .box{ width:720px; max-width:95%; background:#071028; padding:18px; border-radius:12px; border:1px solid rgba(255,255,255,0.03); box-shadow:0 20px 60px rgba(0,0,0,0.5); }
-    .toast{ position:fixed; bottom:20px; right:20px; background:var(--card); padding:12px 16px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3); z-index:10000; display:flex; align-items:center; gap:8px; transform:translateY(100px); opacity:0; transition:all 0.3s ease }
-    .toast.show{ transform:translateY(0); opacity:1 }
-    .toast.success{ border-left:4px solid var(--success) }
-    .toast.warning{ border-left:4px solid var(--warning) }
-    .toast.error{ border-left:4px solid var(--danger) }
-    .emergency-mode{ animation:emergencyFlash 1s infinite }
-    @keyframes emergencyFlash{ 0%,100%{ background-color:transparent } 50%{ background-color:rgba(255,77,109,0.1) } }
-    @media (max-width:980px){ .app{ grid-template-columns:1fr; padding:12px; margin:12px } #map{ height:420px } .panic .big{ width:100px; height:100px; font-size:24px } }
-  </style>
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app" role="application" aria-label="SafeSpace AI Women Safety Frontend">
@@ -84,7 +24,7 @@
       </header>
 
       <div class="card panic" aria-live="polite">
-        <div class="big" id="panicPulse" aria-hidden="false" tabindex="0" role="button">SOS</div>
+        <div class="big" id="panicPulse" tabindex="0" role="button">SOS</div>
         <div style="max-width:320px;">
           <div style="font-weight:700">Panic Button</div>
           <div class="small">Press or say "Help me!" to send SOS. Records evidence & shares live location.</div>
@@ -163,7 +103,7 @@
     </div>
   </div>
 
-  <!-- Modal: Chat / Alerts / Queue -->
+  <!-- Modal -->
   <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="box" role="document">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -174,288 +114,789 @@
     </div>
   </div>
 
-  <!-- Leaflet -->
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <script>
-    // State with persistence
-    const state = {
-      map: null,
-      userMarker: null,
-      zones: [],
-      nearby: [],
-      companion: { active: false, path: [], expected: null, startedAt: null },
-      offlineQueue: JSON.parse(localStorage.getItem('ss_queue') || '[]'),
-      lastEvidence: null,
-      recording: false,
-      mediaRecorder: null,
-      recognition: null,
-      voiceActive: false,
-      emergencyContacts: JSON.parse(localStorage.getItem('ss_contacts') || '[]'),
-      userSettings: JSON.parse(localStorage.getItem('ss_settings') || '{"autoSOS":true,"voiceEnabled":true,"companionEnabled":true}')
-    };
-
-    // Demo zones
-    state.zones = [
-      { id:1, center:[37.7749, -122.4194], radius:500, severity:2, reports:2, name:"Market Park", updated: Date.now() - 86400000 },
-      { id:2, center:[37.768, -122.431], radius:420, severity:3, reports:6, name:"Old Station", updated: Date.now() - 43200000 },
-      { id:3, center:[37.781, -122.41], radius:360, severity:1, reports:1, name:"River Walk", updated: Date.now() - 172800000 }
-    ];
-
-    function updateNetworkStatus() {
-      const online = navigator.onLine;
-      const el = document.getElementById('netStatus');
-      el.textContent = online ? 'Network: Online' : 'Network: Offline';
-      el.style.color = online ? '#9fffdc' : '#ffb3b3';
-      if (online) { flushQueue(); syncZones(); }
-    }
-    window.addEventListener('online', updateNetworkStatus);
-    window.addEventListener('offline', updateNetworkStatus);
-
-    // Map init
-    function initMap() {
-      try {
-        state.map = L.map('map').setView([37.7749, -122.4194], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom:18 }).addTo(state.map);
-
-        state.zones.forEach(z => {
-          const color = z.severity === 1 ? '#3ad29f' : z.severity === 2 ? '#ffb020' : '#ff6b6b';
-          const opacity = 0.12 + (z.severity * 0.04);
-          L.circle(z.center, { radius: z.radius, color, fillColor: color, fillOpacity: opacity, weight:2 }).addTo(state.map)
-            .bindPopup(`\n              <strong>${z.name}</strong>\n              <div>Reports: ${z.reports}</div>\n              <div>Updated: ${new Date(z.updated).toLocaleDateString()}</div>\n              <div style="margin-top:8px">\n                <button data-zone="${z.id}" data-action="safe" class="popup-btn" style="border:0;padding:4px 8px;border-radius:4px;color:white;cursor:pointer">Mark Safe</button>\n                <button data-zone="${z.id}" data-action="unsafe" class="popup-btn" style="border:0;padding:4px 8px;border-radius:4px;color:white;cursor:pointer">Report Issue</button>\n              </div>\n          `);
-        });
-
-        state.userMarker = L.marker([37.7749, -122.4194], { title: "You", icon: L.divIcon({ className:'user-marker', html: '<div style="background:var(--accent);width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(255,77,109,0.5)"></div>', iconSize:[20,20] }) }).addTo(state.map);
-
-        trackLocation();
-
-        // popup button handler (delegation)
-        state.map.on('popupopen', function(e){
-          const popupEl = e.popup._contentNode || e.popup.getElement();
-          if (!popupEl) return;
-          popupEl.querySelectorAll('.popup-btn').forEach(btn => {
-            btn.addEventListener('click', (ev) => {
-              const zid = Number(ev.currentTarget.dataset.zone);
-              const act = ev.currentTarget.dataset.action;
-              reportZone(zid, act === 'unsafe' ? 'unsafe' : 'safe');
-              state.map.closePopup();
-            });
-          });
-        });
-
-      } catch (error) {
-        console.error('Map initialization failed:', error);
-        document.getElementById('map').innerHTML = <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);text-align:center"><div><div style="font-size:18px;margin-bottom:8px">Map Unavailable</div><div>Location tracking will continue in background</div></div></div>;
-      }
-    }
-
-    // Geolocation with watch id handling
-    let watchId = null;
-    function trackLocation() {
-      const gpsEl = document.getElementById('gpsStatus');
-      if (!('geolocation' in navigator)) {
-        gpsEl.textContent = 'GPS: Unavailable';
-        return;
-      }
-      const options = { enableHighAccuracy:true, maximumAge:10000, timeout:15000 };
-      watchId = navigator.geolocation.watchPosition(pos => {
-        const lat = pos.coords.latitude; const lon = pos.coords.longitude; const accuracy = pos.coords.accuracy;
-        gpsEl.textContent = GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)};
-        if (state.userMarker) state.userMarker.setLatLng([lat, lon]);
-        if (state.map && state.map._loaded) state.map.setView([lat, lon], state.map.getZoom());
-        checkZone([lat, lon]);
-        if (state.companion.active) companionHeartbeat([lat, lon]);
-        storeLocationHistory(lat, lon, accuracy);
-      }, err => {
-        console.error('Geolocation error:', err);
-        let message = 'GPS: Error';
-        if (err.code === err.PERMISSION_DENIED) message = 'GPS: Permission Denied';
-        else if (err.code === err.POSITION_UNAVAILABLE) message = 'GPS: Unavailable';
-        else if (err.code === err.TIMEOUT) message = 'GPS: Timeout';
-        gpsEl.textContent = message;
-        showToast('Location services unavailable', 'warning');
-      }, options);
-    }
-
-    window.addEventListener('beforeunload', () => {
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-    });
-
-    // checkZone with fixed template usage
-    function checkZone([lat, lon]) {
-      let found = null; let closestDistance = Infinity;
-      for (const z of state.zones) {
-        const d = distanceMeters(lat, lon, z.center[0], z.center[1]);
-        if (d < closestDistance) closestDistance = d;
-        if (d <= z.radius) { found = z; break; }
-      }
-      const el = document.getElementById('zoneText');
-      if (found) {
-        const text = found.severity === 3 ? Caution: ${found.name} has ${found.reports}+ incidents : found.severity === 2 ? Moderate risk: ${found.name} : Safe: ${found.name};
-        el.textContent = text; el.style.color = found.severity === 3 ? '#ff6b6b' : found.severity === 2 ? '#ffb020' : '#9fffdc';
-        if (found.severity === 3) flashWarning(Caution: ${found.reports}+ incidents reported. Stay alert!);
-      } else {
-        if (closestDistance < 1000) { el.textContent = Nearest zone: ${Math.round(closestDistance)}m away; } else { el.textContent = 'Zone: No notable incidents nearby'; }
-        el.style.color = '#9fffdc';
-      }
-    }
-
-    function distanceMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371000; const toRad = x => x * Math.PI / 180; const dLat = toRad(lat2 - lat1); const dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
-      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-    }
-
-    function flashWarning(msg) {
-      const el = document.getElementById('panicPulse');
-      const originalText = el.textContent;
-      el.textContent = '⚠ ALERT';
-      document.body.classList.add('emergency-mode');
-      playAlertSound();
-      showModal('Area Alert', `\n        <div style="color:#ffb020;font-weight:700;margin-bottom:12px">${msg}</div>\n        <div style="display:flex;gap:8px">\n          <button onclick="closeModal()" style="flex:1;padding:8px;border-radius:6px;background:var(--card);border:1px solid rgba(255,255,255,0.1);color:white">Acknowledge</button>\n          <button onclick="triggerSOS('Area alert triggered')" style="flex:1;padding:8px;border-radius:6px;background:var(--accent);border:0;color:white;font-weight:700">Send SOS</button>\n        </div>\n      `);
-      setTimeout(() => { el.textContent = originalText; document.body.classList.remove('emergency-mode'); }, 10000);
-    }
-
-    // getCurrentPosition helper with Promise
-    function getCurrentPosition(timeout = 10000) {
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) return resolve(null);
-        const options = { enableHighAccuracy:true, timeout };
-        navigator.geolocation.getCurrentPosition(pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }), err => resolve(null), options);
-      });
-    }
-
-    // sendSOS with corrected template usage and privacy fix
-    async function sendSOS(reason = 'User triggered SOS', evidenceBlob = null) {
-      const pos = await getCurrentPosition();
-      const payload = { reason, time: new Date().toISOString(), location: pos, deviceInfo: navigator.userAgent, appVersion: '1.0.0', userId: localStorage.getItem('ss_userId') || 'anonymous' };
-      if (evidenceBlob) payload.evidence = { size: evidenceBlob.size, type: evidenceBlob.type, storedAt: new Date().toISOString() };
-      if (state.emergencyContacts.length > 0) {
-        // Only include last 4 digits of phone for privacy
-        payload.contacts = state.emergencyContacts.map(c => ({ name: c.name, phoneTail: (c.phone || '').slice(-4) }));
-      }
-      const apiUrl = '/api/alert';
-      if (navigator.onLine) {
-        try {
-          const form = new FormData(); form.append('payload', JSON.stringify(payload));
-          if (evidenceBlob) form.append('evidence', evidenceBlob, evidence_${Date.now()}.webm);
-          const controller = new AbortController(); const timeoutId = setTimeout(() => controller.abort(), 10000);
-          const res = await fetch(apiUrl, { method:'POST', body: form, signal: controller.signal }); clearTimeout(timeoutId);
-          if (!res.ok) throw new Error(Server error: ${res.status});
-          showModal('SOS Sent', `\n            <div style="color:var(--success);font-weight:700;margin-bottom:12px">Alert sent successfully!</div>\n            <div>Your emergency contacts have been notified with your location.</div>\n            <div style="margin-top:12px;font-size:13px;color:var(--muted)">Time: ${new Date().toLocaleTimeString()}</div>\n          `);
-          logEvent('sos_sent', { reason, withEvidence: !!evidenceBlob });
-        } catch (e) {
-          console.error('SOS send failed:', e);
-          queueSOS(payload, evidenceBlob);
-          showModal('SOS Queued', `\n            <div style="color:var(--warning);font-weight:700;margin-bottom:12px">SOS Saved Offline</div>\n            <div>Could not reach server. SOS has been saved locally and will be sent when connection is restored.</div>\n            <div style="margin-top:12px;font-size:13px;color:var(--muted)">You can still use the app offline.</div>\n          `);
-          logEvent('sos_queued', { reason, error: e.message });
-        }
-      } else {
-        queueSOS(payload, evidenceBlob);
-        showModal('SOS Queued', `\n          <div style="color:var(--warning);font-weight:700;margin-bottom:12px">SOS Saved Offline</div>\n          <div>No network connection. SOS has been saved locally and will be sent when you're back online.</div>\n          <div style="margin-top:12px;font-size:13px;color:var(--muted)">You can still use the app offline.</div>\n        `);
-        logEvent('sos_queued_offline', { reason });
-      }
-    }
-
-    function queueSOS(payload, blob) {
-      const queueItem = { id: Date.now().toString(), payload, blobMeta: blob ? { size: blob.size, type: blob.type, time: new Date().toISOString() } : null, attempts:0, lastAttempt:null };
-      state.offlineQueue.push(queueItem); localStorage.setItem('ss_queue', JSON.stringify(state.offlineQueue));
-      document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
-    }
-
-    async function flushQueue() {
-      if (state.offlineQueue.length === 0) return;
-      const remaining = [];
-      let sentCount = 0;
-      for (const item of state.offlineQueue) {
-        if (item.attempts >= 5) { remaining.push(item); continue; }
-        try {
-          const form = new FormData(); form.append('payload', JSON.stringify(item.payload));
-          const res = await fetch('/api/alert', { method:'POST', body: form });
-          if (!res.ok) throw new Error(HTTP ${res.status});
-          logEvent('queued_sos_sent', { id: item.id }); sentCount++;
-        } catch (e) { item.attempts++; item.lastAttempt = new Date().toISOString(); remaining.push(item); console.error('Failed to send queued SOS:', e); }
-        await new Promise(r => setTimeout(r, 100));
-      }
-      state.offlineQueue = remaining; localStorage.setItem('ss_queue', JSON.stringify(state.offlineQueue));
-      document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
-      if (sentCount > 0) showToast(${sentCount} alerts sent, 'success');
-    }
-
-    // Voice recognition
-    function initVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) { document.getElementById('voiceBtn').textContent = 'Voice AI Unavailable'; document.getElementById('voiceBtn').disabled = true; return; }
-      const rec = new SpeechRecognition(); rec.continuous = true; rec.interimResults = false; rec.lang = 'en-US'; rec.maxAlternatives = 3;
-      rec.onresult = (evt) => {
-        const transcript = Array.from(evt.results).map(r => r[0].transcript).join(' ').trim().toLowerCase();
-        console.log('Voice detected:', transcript);
-        const panicPhrases = ['help','help me','emergency','sos','save me','dont touch','stop','no please','get away','im scared','i need help','call police'];
-        if (panicPhrases.some(phrase => transcript.includes(phrase))) triggerAutoSOS('Voice panic phrase detected: ' + transcript);
-        if (transcript.includes('start companion')) { if (!state.companion.active) startCompanion(); }
-        else if (transcript.includes('stop companion')) { if (state.companion.active) stopCompanion(); }
-        else if (transcript.includes('safe report')) generateSafetyReport();
-      };
-      rec.onstart = () => { state.voiceActive = true; document.getElementById('voiceBtn').textContent = 'Stop Voice AI'; document.getElementById('voiceBtn').style.background = 'var(--success)'; showToast('Voice monitoring active', 'success'); };
-      rec.onend = () => { state.voiceActive = false; document.getElementById('voiceBtn').textContent = 'Start Voice AI'; document.getElementById('voiceBtn').style.background = ''; if (state.userSettings.voiceEnabled) { setTimeout(() => { try { rec.start(); } catch (e) { console.warn('Voice restart failed:', e); } }, 1000); } };
-      rec.onerror = (e) => { console.warn('Speech recognition error:', e); state.voiceActive = false; document.getElementById('voiceBtn').textContent = 'Start Voice AI'; document.getElementById('voiceBtn').style.background = ''; if (e.error === 'not-allowed') showToast('Microphone permission denied', 'error'); };
-      state.recognition = rec;
-    }
-
-    // Companion mode (simplified)
-    function startCompanion() { state.companion.active = true; state.companion.path = []; state.companion.startedAt = Date.now(); document.getElementById('companionInfo').textContent = 'Companion: Active'; document.getElementById('companionBtn').textContent = 'Stop Companion'; document.getElementById('companionBtn').style.background = 'var(--success)'; showModal('Companion Mode Active', `\n      <div style="margin-bottom:12px">Companion mode is now active. The app will:</div>\n      <ul style="margin:0;padding-left:20px;color:var(--muted)">\n        <li>Monitor your route for deviations</li>\n        <li>Check in if you stop moving unexpectedly</li>\n        <li>Alert contacts if you don't respond to safety checks</li>\n      </ul>\n      <div style="margin-top:12px;display:flex;gap:8px">\n        <button onclick="setDestination()" style="flex:1;padding:8px;border-radius:6px;background:var(--card);border:1px solid rgba(255,255,255,0.1);color:white">Set Destination</button>\n        <button onclick="closeModal()" style="flex:1;padding:8px;border-radius:6px;background:var(--accent);border:0;color:white">OK</button>\n      </div>\n    `); logEvent('companion_started'); }
-    function stopCompanion() { state.companion.active = false; document.getElementById('companionInfo').textContent = 'Companion: Off'; document.getElementById('companionBtn').textContent = 'Start Companion'; document.getElementById('companionBtn').style.background = ''; logEvent('companion_stopped'); }
-
-    function companionHeartbeat([lat,lon]) { state.companion.path.push({lat,lon,t:Date.now()}); }
-
-    // Helpers
-    function playAlertSound() { try { const audioContext = new (window.AudioContext || window.webkitAudioContext)(); const oscillator = audioContext.createOscillator(); const gainNode = audioContext.createGain(); oscillator.connect(gainNode); gainNode.connect(audioContext.destination); oscillator.frequency.setValueAtTime(800, audioContext.currentTime); gainNode.gain.setValueAtTime(0.3, audioContext.currentTime); oscillator.start(); oscillator.stop(audioContext.currentTime + 0.3); } catch (e) { console.warn('Audio context not supported:', e); } }
-
-    function showToast(message, type='info') {
-      document.querySelectorAll('.toast').forEach(t => t.remove());
-      const toast = document.createElement('div'); toast.className = toast ${type};
-      toast.innerHTML = <div>${message}</div><button aria-label="close toast" style="background:none;border:none;color:white;cursor:pointer">×</button>;
-      toast.querySelector('button').addEventListener('click', () => toast.remove());
-      document.body.appendChild(toast);
-      setTimeout(() => toast.classList.add('show'), 10);
-      setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 5000);
-    }
-
-    function logEvent(event, data={}) { const events = JSON.parse(localStorage.getItem('ss_events') || '[]'); events.push({ event, timestamp: new Date().toISOString(), ...data }); if (events.length > 100) events.splice(0, events.length - 100); localStorage.setItem('ss_events', JSON.stringify(events)); }
-    function storeLocationHistory(lat, lon, accuracy) { const history = JSON.parse(localStorage.getItem('ss_locationHistory') || '[]'); history.push({ lat, lon, accuracy, timestamp: new Date().toISOString() }); if (history.length > 100) history.splice(0, history.length - 100); localStorage.setItem('ss_locationHistory', JSON.stringify(history)); }
-
-    // Minimal implementations for missing functions used in UI
-    function showModal(title, html) { const modal = document.getElementById('modal'); document.getElementById('modalTitle').textContent = title; document.getElementById('modalBody').innerHTML = html; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
-    function closeModal() { const modal = document.getElementById('modal'); modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
-    document.getElementById('closeModal').addEventListener('click', closeModal);
-
-    function reportZone(id, type) { const z = state.zones.find(zz => zz.id === id); if (!z) return; if (type === 'unsafe') z.reports += 1, z.severity = Math.min(3, z.severity + 1); else if (type === 'safe') z.reports = Math.max(0, z.reports - 1), z.severity = Math.max(1, z.severity - 1); showToast('Thanks — zone updated', 'success'); }
-
-    function syncZones() { /* placeholder to fetch updated zone data from server */ }
-    function triggerAutoSOS(reason) { sendSOS(reason); }
-    function triggerSOS(reason) { sendSOS(reason); }
-
-    // UI init
-    function initUI() {
-      document.getElementById('downloadEvidence').disabled = !state.lastEvidence;
-      document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
-      updateNetworkStatus();
-      document.addEventListener('keydown', (e) => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); document.getElementById('panicBtn').click(); } if (e.code === 'Escape') closeModal(); });
-      const sosButton = document.getElementById('panicPulse'); sosButton.classList.add('pulsing');
-
-      // wire up controls
-      document.getElementById('panicBtn').addEventListener('click', () => triggerSOS('User pressed panic'));
-      document.getElementById('voiceBtn').addEventListener('click', () => { if (!state.recognition) return; if (!state.voiceActive) try { state.recognition.start(); } catch(e){ console.warn(e); } else state.recognition.stop(); });
-      document.getElementById('companionBtn').addEventListener('click', () => { if (state.companion.active) stopCompanion(); else startCompanion(); });
-      document.getElementById('mockNearby').addEventListener('click', () => { document.getElementById('nearbyCount').textContent = Number(document.getElementById('nearbyCount').textContent) + 1; showToast('Nearby helper simulated', 'success'); });
-      document.getElementById('viewQueue').addEventListener('click', () => showModal('Offline Queue', <pre>${JSON.stringify(state.offlineQueue, null, 2)}</pre>));
-    }
-
-    // small stubs
-    function generateSafetyReport() { showModal('Safety Report', '<div class="small">(Demo) Weekly safety summary will appear here.</div>'); }
-    function setDestination() { showToast('Destination set (demo)', 'success'); }
-
-    window.addEventListener('load', () => { initUI(); initMap(); initVoice(); showToast('SafeSpace is ready. Your safety is our priority.', 'success'); if (window.location.hostname === 'localhost') window._ss = state; });
-  </script>
+  <!-- App Logic -->
+  <script src="script.js"></script>
 </body>
 </html>
+
+
+CODE FOR HTML
+
+
+:root {
+  --bg: #0f1724;
+  --card: #0b1220;
+  --accent: #ff4d6d;
+  --muted: #9aa7b2;
+  --glass: rgba(255,255,255,0.04);
+  --success: #3ad29f;
+  --warning: #ffb020;
+  --danger: #ff6b6b;
+  --transition: all 0.3s ease;
+  --shadow: 0 6px 30px rgba(2,6,23,0.7);
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: linear-gradient(180deg, #071029 0%, #071833 50%, #0b1b2b 100%);
+  font-family: Inter, system-ui, Roboto, Arial;
+  color: #e6f0f6;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 28px auto;
+  padding: 22px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  box-shadow: var(--shadow);
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 20px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), #6c5ce7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  color: white;
+  box-shadow: 0 6px 18px rgba(109,40,217,0.18);
+}
+
+h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+p.lead {
+  color: var(--muted);
+  margin: 0;
+  font-size: 13px;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  background: var(--card);
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  transition: var(--transition);
+}
+
+.panic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(255,77,109,0.06), rgba(255,77,109,0.02));
+  border: 1px solid rgba(255,77,109,0.06);
+}
+
+.panic .big {
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 20%, rgba(255,77,109,0.22), rgba(255,77,109,0.06));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 12px 30px rgba(255,77,109,0.08);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.panic .big.pulsing {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.panic button {
+  margin-top: 6px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 0;
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.chip {
+  background: var(--glass);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.02);
+}
+
+#map {
+  height: 680px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.02);
+}
+
+.tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.tools button {
+  background: linear-gradient(90deg, #12314a, #0d2232);
+  border: 1px solid rgba(255,255,255,0.02);
+  color: #bfe6ff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.muted-small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.6));
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.modal.open {
+  display: flex;
+}
+
+.modal .box {
+  width: 720px;
+  max-width: 95%;
+  background: #071028;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--card);
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast.success { border-left: 4px solid var(--success); }
+.toast.warning { border-left: 4px solid var(--warning); }
+.toast.error { border-left: 4px solid var(--danger); }
+
+.emergency-mode {
+  animation: emergencyFlash 1s infinite;
+}
+
+@keyframes emergencyFlash {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(255,77,109,0.1); }
+}
+
+.legend {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.legend .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legend .dot.green { background: #3ad29f; }
+.legend .dot.yellow { background: #ffb020; }
+.legend .dot.red { background: #ff6b6b; }
+
+@media (max-width: 980px) {
+  .app {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    margin: 12px;
+  }
+  #map { height: 420px; }
+  .panic .big { width: 100px; height: 100px; font-size: 24px; }
+}
+
+
+CODE FOR CSS
+
+// State with persistence
+const state = {
+  map: null,
+  userMarker: null,
+  zones: [],
+  nearby: [],
+  companion: { active: false, path: [], expected: null, startedAt: null },
+  offlineQueue: JSON.parse(localStorage.getItem('ss_queue') || '[]'),
+  lastEvidence: null,
+  recording: false,
+  mediaRecorder: null,
+  recognition: null,
+  voiceActive: false,
+  emergencyContacts: JSON.parse(localStorage.getItem('ss_contacts') || '[]'),
+  userSettings: JSON.parse(localStorage.getItem('ss_settings') || '{"autoSOS":true,"voiceEnabled":true,"companionEnabled":true}')
+};
+
+// Demo zones
+state.zones = [
+  { id:1, center:[37.7749, -122.4194], radius:500, severity:2, reports:2, name:"Market Park", updated: Date.now() - 86400000 },
+  { id:2, center:[37.768, -122.431], radius:420, severity:3, reports:6, name:"Old Station", updated: Date.now() - 43200000 },
+  { id:3, center:[37.781, -122.41], radius:360, severity:1, reports:1, name:"River Walk", updated: Date.now() - 172800000 }
+];
+
+function updateNetworkStatus() {
+  const online = navigator.onLine;
+  const el = document.getElementById('netStatus');
+  el.textContent = online ? 'Network: Online' : 'Network: Offline';
+  el.style.color = online ? '#9fffdc' : '#ffb3b3';
+  if (online) { flushQueue(); syncZones(); }
+}
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+
+// Map init
+function initMap() {
+  try {
+    state.map = L.map('map').setView([37.7749, -122.4194], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(state.map);
+
+    state.zones.forEach(z => {
+      const color = z.severity === 1 ? '#3ad29f' : z.severity === 2 ? '#ffb020' : '#ff6b6b';
+      const opacity = 0.12 + (z.severity * 0.04);
+      L.circle(z.center, {
+        radius: z.radius,
+        color,
+        fillColor: color,
+        fillOpacity: opacity,
+        weight: 2
+      }).addTo(state.map)
+        .bindPopup(`
+          <strong>${z.name}</strong>
+          <div>Reports: ${z.reports}</div>
+          <div>Updated: ${new Date(z.updated).toLocaleDateString()}</div>
+          <div style="margin-top:8px">
+            <button data-zone="${z.id}" data-action="safe" class="popup-btn">Mark Safe</button>
+            <button data-zone="${z.id}" data-action="unsafe" class="popup-btn">Report Issue</button>
+          </div>
+        `);
+    });
+
+    state.userMarker = L.marker([37.7749, -122.4194], {
+      title: "You",
+      icon: L.divIcon({
+        className: 'user-marker',
+        html: '<div style="background:var(--accent);width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(255,77,109,0.5)"></div>',
+        iconSize: [20, 20]
+      })
+    }).addTo(state.map);
+
+    trackLocation();
+
+    state.map.on('popupopen', function(e) {
+      const popupEl = e.popup._contentNode || e.popup.getElement();
+      if (!popupEl) return;
+      popupEl.querySelectorAll('.popup-btn').forEach(btn => {
+        btn.addEventListener('click', (ev) => {
+          const zid = Number(ev.currentTarget.dataset.zone);
+          const act = ev.currentTarget.dataset.action;
+          reportZone(zid, act === 'unsafe' ? 'unsafe' : 'safe');
+          state.map.closePopup();
+        });
+      });
+    });
+
+  } catch (error) {
+    console.error('Map initialization failed:', error);
+    document.getElementById('map').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);text-align:center">
+        <div>
+          <div style="font-size:18px;margin-bottom:8px">Map Unavailable</div>
+          <div>Location tracking will continue in background</div>
+        </div>
+      </div>`;
+  }
+}
+
+let watchId = null;
+function trackLocation() {
+  const gpsEl = document.getElementById('gpsStatus');
+  if (!('geolocation' in navigator)) {
+    gpsEl.textContent = 'GPS: Unavailable';
+    return;
+  }
+  const options = { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 };
+  watchId = navigator.geolocation.watchPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    const accuracy = pos.coords.accuracy;
+    gpsEl.textContent = GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)};
+    if (state.userMarker) state.userMarker.setLatLng([lat, lon]);
+    if (state.map && state.map._loaded) state.map.setView([lat, lon], state.map.getZoom());
+    checkZone([lat, lon]);
+    if (state.companion.active) companionHeartbeat([lat, lon]);
+    storeLocationHistory(lat, lon, accuracy);
+  }, err => {
+    console.error('Geolocation error:', err);
+    let message = 'GPS: Error';
+    if (err.code === err.PERMISSION_DENIED) message = 'GPS: Permission Denied';
+    else if (err.code === err.POSITION_UNAVAILABLE) message = 'GPS: Unavailable';
+    else if (err.code === err.TIMEOUT) message = 'GPS: Timeout';
+    gpsEl.textContent = message;
+    showToast('Location services unavailable', 'warning');
+  }, options);
+}
+
+window.addEventListener('beforeunload', () => {
+  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+});
+
+function checkZone([lat, lon]) {
+  let found = null;
+  let closestDistance = Infinity;
+  for (const z of state.zones) {
+    const d = distanceMeters(lat, lon, z.center[0], z.center[1]);
+    if (d < closestDistance) closestDistance = d;
+    if (d <= z.radius) { found = z; break; }
+  }
+  const el = document.getElementById('zoneText');
+  if (found) {
+    const text = found.severity === 3
+      ? Caution: ${found.name} has ${found.reports}+ incidents
+      : found.severity === 2
+        ? Moderate risk: ${found.name}
+        : Safe: ${found.name};
+    el.textContent = text;
+    el.style.color = found.severity === 3 ? '#ff6b6b' : found.severity === 2 ? '#ffb020' : '#9fffdc';
+    if (found.severity === 3) flashWarning(Caution: ${found.reports}+ incidents reported. Stay alert!);
+  } else {
+    el.textContent = closestDistance < 1000
+      ? Nearest zone: ${Math.round(closestDistance)}m away
+      : 'Zone: No notable incidents nearby';
+    el.style.color = '#9fffdc';
+  }
+}
+
+function distanceMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+function flashWarning(msg) {
+  const el = document.getElementById('panicPulse');
+  const originalText = el.textContent;
+  el.textContent = 'ALERT';
+  document.body.classList.add('emergency-mode');
+  playAlertSound();
+  showModal('Area Alert', `
+    <div style="color:#ffb020;font-weight:700;margin-bottom:12px">${msg}</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeModal()" style="flex:1;padding:8px;border-radius:6px;background:var(--card);border:1px solid rgba(255,255,255,0.1);color:white">Acknowledge</button>
+      <button onclick="triggerSOS('Area alert triggered')" style="flex:1;padding:8px;border-radius:6px;background:var(--accent);border:0;color:white;font-weight:700">Send SOS</button>
+    </div>
+  `);
+  setTimeout(() => {
+    el.textContent = originalText;
+    document.body.classList.remove('emergency-mode');
+  }, 10000);
+}
+
+function getCurrentPosition(timeout = 10000) {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve(null);
+    const options = { enableHighAccuracy: true, timeout };
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+      () => resolve(null),
+      options
+    );
+  });
+}
+
+async function sendSOS(reason = 'User triggered SOS', evidenceBlob = null) {
+  const pos = await getCurrentPosition();
+  const payload = {
+    reason,
+    time: new Date().toISOString(),
+    location: pos,
+    deviceInfo: navigator.userAgent,
+    appVersion: '1.0.0',
+    userId: localStorage.getItem('ss_userId') || 'anonymous'
+  };
+  if (evidenceBlob) payload.evidence = { size: evidenceBlob.size, type: evidenceBlob.type, storedAt: new Date().toISOString() };
+  if (state.emergencyContacts.length > 0) {
+    payload.contacts = state.emergencyContacts.map(c => ({ name: c.name, phoneTail: (c.phone || '').slice(-4) }));
+  }
+  const apiUrl = 'http://localhost:8080/api/alert';
+
+  if (navigator.onLine) {
+    try {
+      const form = new FormData();
+      form.append('payload', JSON.stringify(payload));
+      if (evidenceBlob) form.append('evidence', evidenceBlob, evidence_${Date.now()}.webm);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const res = await fetch(apiUrl, { method: 'POST', body: form, signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (!res.ok) throw new Error(Server error: ${res.status});
+      showModal('SOS Sent', `
+        <div style="color:var(--success);font-weight:700;margin-bottom:12px">Alert sent successfully!</div>
+        <div>Your emergency contacts have been notified with your location.</div>
+        <div style="margin-top:12px;font-size:13px;color:var(--muted)">Time: ${new Date().toLocaleTimeString()}</div>
+      `);
+      logEvent('sos_sent', { reason, withEvidence: !!evidenceBlob });
+    } catch (e) {
+      console.error('SOS send failed:', e);
+      queueSOS(payload, evidenceBlob);
+      showModal('SOS Queued', `
+        <div style="color:var(--warning);font-weight:700;margin-bottom:12px">SOS Saved Offline</div>
+        <div>Could not reach server. SOS has been saved locally and will be sent when connection is restored.</div>
+        <div style="margin-top:12px;font-size:13px;color:var(--muted)">You can still use the app offline.</div>
+      `);
+      logEvent('sos_queued', { reason, error: e.message });
+    }
+  } else {
+    queueSOS(payload, evidenceBlob);
+    showModal('SOS Queued', `
+      <div style="color:var(--warning);font-weight:700;margin-bottom:12px">SOS Saved Offline</div>
+      <div>No network connection. SOS has been saved locally and will be sent when you're back online.</div>
+      <div style="margin-top:12px;font-size:13px;color:var(--muted)">You can still use the app offline.</div>
+    `);
+    logEvent('sos_queued_offline', { reason });
+  }
+}
+
+function queueSOS(payload, blob) {
+  const queueItem = {
+    id: Date.now().toString(),
+    payload,
+    blobMeta: blob ? { size: blob.size, type: blob.type, time: new Date().toISOString() } : null,
+    attempts: 0,
+    lastAttempt: null
+  };
+  state.offlineQueue.push(queueItem);
+  localStorage.setItem('ss_queue', JSON.stringify(state.offlineQueue));
+  document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
+}
+
+async function flushQueue() {
+  if (state.offlineQueue.length === 0) return;
+  const remaining = [];
+  let sentCount = 0;
+  for (const item of state.offlineQueue) {
+    if (item.attempts >= 5) { remaining.push(item); continue; }
+    try {
+      const form = new FormData();
+      form.append('payload', JSON.stringify(item.payload));
+      const res = await fetch('/api/alert', { method: 'POST', body: form });
+      if (!res.ok) throw new Error(HTTP ${res.status});
+      logEvent('queued_sos_sent', { id: item.id });
+      sentCount++;
+    } catch (e) {
+      item.attempts++;
+      item.lastAttempt = new Date().toISOString();
+      remaining.push(item);
+      console.error('Failed to send queued SOS:', e);
+    }
+    await new Promise(r => setTimeout(r, 100));
+  }
+  state.offlineQueue = remaining;
+  localStorage.setItem('ss_queue', JSON.stringify(state.offlineQueue));
+  document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
+  if (sentCount > 0) showToast(${sentCount} alerts sent, 'success');
+}
+
+function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    document.getElementById('voiceBtn').textContent = 'Voice AI Unavailable';
+    document.getElementById('voiceBtn').disabled = true;
+    return;
+  }
+  const rec = new SpeechRecognition();
+  rec.continuous = true;
+  rec.interimResults = false;
+  rec.lang = 'en-US';
+  rec.maxAlternatives = 3;
+
+  rec.onresult = (evt) => {
+    const transcript = Array.from(evt.results).map(r => r[0].transcript).join(' ').trim().toLowerCase();
+    console.log('Voice detected:', transcript);
+    const panicPhrases = ['help','help me','emergency','sos','save me','dont touch','stop','no please','get away','im scared','i need help','call police'];
+    if (panicPhrases.some(phrase => transcript.includes(phrase))) triggerAutoSOS('Voice panic phrase detected: ' + transcript);
+    if (transcript.includes('start companion')) { if (!state.companion.active) startCompanion(); }
+    else if (transcript.includes('stop companion')) { if (state.companion.active) stopCompanion(); }
+    else if (transcript.includes('safe report')) generateSafetyReport();
+  };
+
+  rec.onstart = () => {
+    state.voiceActive = true;
+    document.getElementById('voiceBtn').textContent = 'Stop Voice AI';
+    document.getElementById('voiceBtn').style.background = 'var(--success)';
+    showToast('Voice monitoring active', 'success');
+  };
+
+  rec.onend = () => {
+    state.voiceActive = false;
+    document.getElementById('voiceBtn').textContent = 'Start Voice AI';
+    document.getElementById('voiceBtn').style.background = '';
+    if (state.userSettings.voiceEnabled) {
+      setTimeout(() => {
+        try { rec.start(); } catch (e) { console.warn('Voice restart failed:', e); }
+      }, 1000);
+    }
+  };
+
+  rec.onerror = (e) => {
+    console.warn('Speech recognition error:', e);
+    state.voiceActive = false;
+    document.getElementById('voiceBtn').textContent = 'Start Voice AI';
+    document.getElementById('voiceBtn').style.background = '';
+    if (e.error === 'not-allowed') showToast('Microphone permission denied', 'error');
+  };
+
+  state.recognition = rec;
+}
+
+function startCompanion() {
+  state.companion.active = true;
+  state.companion.path = [];
+  state.companion.startedAt = Date.now();
+  document.getElementById('companionInfo').textContent = 'Companion: Active';
+  document.getElementById('companionBtn').textContent = 'Stop Companion';
+  document.getElementById('companionBtn').style.background = 'var(--success)';
+  showModal('Companion Mode Active', `
+    <div style="margin-bottom:12px">Companion mode is now active. The app will:</div>
+    <ul style="margin:0;padding-left:20px;color:var(--muted)">
+      <li>Monitor your route for deviations</li>
+      <li>Check in if you stop moving unexpectedly</li>
+      <li>Alert contacts if you don't respond to safety checks</li>
+    </ul>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button onclick="setDestination()" style="flex:1;padding:8px;border-radius:6px;background:var(--card);border:1px solid rgba(255,255,255,0.1);color:white">Set Destination</button>
+      <button onclick="closeModal()" style="flex:1;padding:8px;border-radius:6px;background:var(--accent);border:0;color:white">OK</button>
+    </div>
+  `);
+  logEvent('companion_started');
+}
+
+function stopCompanion() {
+  state.companion.active = false;
+  document.getElementById('companionInfo').textContent = 'Companion: Off';
+  document.getElementById('companionBtn').textContent = 'Start Companion';
+  document.getElementById('companionBtn').style.background = '';
+  logEvent('companion_stopped');
+}
+
+function companionHeartbeat([lat, lon]) {
+  state.companion.path.push({ lat, lon, t: Date.now() });
+}
+
+function playAlertSound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.3);
+  } catch (e) {
+    console.warn('Audio context not supported:', e);
+  }
+}
+
+function showToast(message, type = 'info') {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const toast = document.createElement('div');
+  toast.className = toast ${type};
+  toast.innerHTML = <div>${message}</div><button aria-label="close toast" style="background:none;border:none;color:white;cursor:pointer">×</button>;
+  toast.querySelector('button').addEventListener('click', () => toast.remove());
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
+function logEvent(event, data = {}) {
+  const events = JSON.parse(localStorage.getItem('ss_events') || '[]');
+  events.push({ event, timestamp: new Date().toISOString(), ...data });
+  if (events.length > 100) events.splice(0, events.length - 100);
+  localStorage.setItem('ss_events', JSON.stringify(events));
+}
+
+function storeLocationHistory(lat, lon, accuracy) {
+  const history = JSON.parse(localStorage.getItem('ss_locationHistory') || '[]');
+  history.push({ lat, lon, accuracy, timestamp: new Date().toISOString() });
+  if (history.length > 100) history.splice(0, history.length - 100);
+  localStorage.setItem('ss_locationHistory', JSON.stringify(history));
+}
+
+function showModal(title, html) {
+  const modal = document.getElementById('modal');
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = html;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeModal() {
+  const modal = document.getElementById('modal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+document.getElementById('closeModal').addEventListener('click', closeModal);
+
+function reportZone(id, type) {
+  const z = state.zones.find(zz => zz.id === id);
+  if (!z) return;
+  if (type === 'unsafe') {
+    z.reports += 1;
+    z.severity = Math.min(3, z.severity + 1);
+  } else if (type === 'safe') {
+    z.reports = Math.max(0, z.reports - 1);
+    z.severity = Math.max(1, z.severity - 1);
+  }
+  showToast('Thanks — zone updated', 'success');
+}
+
+function syncZones() { /* placeholder */ }
+function triggerAutoSOS(reason) { sendSOS(reason); }
+function triggerSOS(reason) { sendSOS(reason); }
+
+function initUI() {
+  document.getElementById('downloadEvidence').disabled = !state.lastEvidence;
+  document.getElementById('viewQueue').textContent = View Offline Queue (${state.offlineQueue.length});
+  updateNetworkStatus();
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && e.target === document.body) {
+      e.preventDefault();
+      document.getElementById('panicBtn').click();
+    }
+    if (e.code === 'Escape') closeModal();
+  });
+  const sosButton = document.getElementById('panicPulse');
+  sosButton.classList.add('pulsing');
+
+  document.getElementById('panicBtn').addEventListener('click', () => triggerSOS('User pressed panic'));
+  document.getElementById('voiceBtn').addEventListener('click', () => {
+    if (!state.recognition) return;
+    if (!state.voiceActive) {
+      try { state.recognition.start(); } catch (e) { console.warn(e); }
+    } else {
+      state.recognition.stop();
+    }
+  });
+  document.getElementById('companionBtn').addEventListener('click', () => {
+    state.companion.active ? stopCompanion() : startCompanion();
+  });
+  document.getElementById('mockNearby').addEventListener('click', () => {
+    document.getElementById('nearbyCount').textContent = Number(document.getElementById('nearbyCount').textContent) + 1;
+    showToast('Nearby helper simulated', 'success');
+  });
+  document.getElementById('viewQueue').addEventListener('click', () => {
+    showModal('Offline Queue', <pre>${JSON.stringify(state.offlineQueue, null, 2)}</pre>);
+  });
+}
+
+function generateSafetyReport() {
+  showModal('Safety Report', '<div class="small">(Demo) Weekly safety summary will appear here.</div>');
+}
+
+function setDestination() {
+  showToast('Destination set (demo)', 'success');
+}
+
+window.addEventListener('load', () => {
+  initUI();
+  initMap();
+  initVoice();
+  showToast('SafeSpace is ready. Your safety is our priority.', 'success');
+  if (window.location.hostname === 'localhost') window._ss = state;
+});
+
+
+CODE FOR JS
